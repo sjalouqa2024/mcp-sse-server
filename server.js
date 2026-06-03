@@ -9,7 +9,6 @@ const BEARER_TOKEN = process.env.BEARER_TOKEN || "my-secret-token-123";
 
 app.use(express.json());
 
-// Bearer token middleware
 function authMiddleware(req, res, next) {
   const authHeader = req.headers["authorization"];
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -42,7 +41,6 @@ function createMcpServer() {
   return server;
 }
 
-// SSE endpoint — protected by bearer token
 app.get("/sse", authMiddleware, async (req, res) => {
   console.log("New authenticated SSE connection from", req.ip);
   const transport = new SSEServerTransport("/message", res);
@@ -52,7 +50,6 @@ app.get("/sse", authMiddleware, async (req, res) => {
   await server.connect(transport);
 });
 
-// Message endpoint — protected by bearer token
 app.post("/message", authMiddleware, async (req, res) => {
   const sessionId = req.query.sessionId;
   const transport = transports[sessionId];
@@ -60,7 +57,6 @@ app.post("/message", authMiddleware, async (req, res) => {
   await transport.handlePostMessage(req, res, req.body);
 });
 
-// Health check — no auth needed
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 app.listen(PORT, "0.0.0.0", () => {
